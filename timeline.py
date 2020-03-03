@@ -1,11 +1,11 @@
-import pymel.core as pmc	
+import maya.cmds as cmds 
 def set(start, end):
-	pmc.playbackOptions(animationStartTime = start, animationEndTime = end)
+	cmds.playbackOptions(animationStartTime = start, animationEndTime = end)
 	return (start, end)
 
 def get():
-	start = pmc.playbackOptions(query = True, min = True)
-	end = pmc.playbackOptions(query = True,  max = True)
+	start = cmds.playbackOptions(query = True, min = True)
+	end = cmds.playbackOptions(query = True,  max = True)
 	return (start, end)
 
 def get_slider():
