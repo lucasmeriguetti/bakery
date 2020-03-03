@@ -1,11 +1,13 @@
 from maya import cmds
-import lmutils.vector as vector
+import bakery.vector as vector
 reload(vector)
 
-import lmutils.matrix as matrix
+import bakery.matrix as matrix
 reload(matrix)
 
-import lmutils.timeline as timeline
+import bakery.timeline as timeline
+reload(timeline)
+
 import bakery.baker as baker
 reload(baker)
 

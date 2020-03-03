@@ -1,6 +1,7 @@
 import maya.cmds as cmds 
+
 def set(start, end):
-	cmds.playbackOptions(animationStartTime = start, animationEndTime = end)
+	cmds.playbackOptions(min = start, max = end)
 	return (start, end)
 
 def get():
@@ -9,13 +10,12 @@ def get():
 	return (start, end)
 
 def get_slider():
-		
-	try:
-		aPlayBackSliderPython = maya.mel.eval('$tmpVar=$gPlayBackSlider')
-		time_slider_range = cmds.timeControl(aPlayBackSliderPython, query = True, rangeArray = True)
-		timeline_range =  tuple(time_slider_range)
-		return timeline_range
+	aPlayBackSlider= maya.mel.eval('$tmpVar=$gPlayBackSlider')
+	
+	if not cmds.timeControl(aPlayBackSlider, query = True, rangeVisible = True):
+		return cmds.warning("No range selected")
+
+	time_slider_range = cmds.timeControl(aPlayBackSlider, query = True, rangeArray = True)
+	timeline_range =  tuple(time_slider_range)
+	return timeline_range
 			
-	except:
-		print ("You have to select a time range.")
-		return (start, end)

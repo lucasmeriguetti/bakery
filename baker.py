@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import lmutils.timeline as timeline
+import bakery.timeline as timeline
 
 def create_locators(selection):
 	time = timeline.get()

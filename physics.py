@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import lmutils.timeline as timeline
+import bakery.timeline as timeline
 import bakery.baker as baker
 
 def nparticle_locators(selection):
