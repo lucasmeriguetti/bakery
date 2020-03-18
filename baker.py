@@ -1,5 +1,37 @@
 import maya.cmds as cmds
 import bakery.timeline as timeline
+class Baker():
+	def __init__(self):
+		self._selection
+		getSelection() 
+
+	def createBakerNode():
+		pass 
+
+	def getBakerNode():
+	def getSelection():
+		self._selection = cmds.ls(sl = True)
+
+	def createTransforms(self):
+		pass 
+
+	def bakeTransforms(self):
+		pass 
+
+	def constraintTransforms(self):
+		pass 
+
+	def isAttrLocked(self):
+		pass 
+
+	def parentConstraint(self):
+		pass 
+
+	def orientConstraint(self):
+		pass 
+
+	def scaleConstraint(self):
+		pass 
 
 def create_locators(selection):
 	time = timeline.get()
@@ -45,7 +77,7 @@ def check_locked_attributes(selection, translation = True, rotation = True):
 				for compare in compare_attrs:
 					if compare == locked:
 						cmds.confirmDialog(title = "Locked Attributes",
-							message = "Some rigger locked the freaking attributes!!!\nScript won't run!!!")
+							message = "Some one locked the freaking attributes!!!\nScript won't run!!!")
 
 						raise Exception("Locked Attributes: {}".format(locked_attributes))
 

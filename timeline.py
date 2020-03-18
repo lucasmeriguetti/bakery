@@ -11,7 +11,7 @@ def get():
 
 def get_slider():
 	aPlayBackSlider= maya.mel.eval('$tmpVar=$gPlayBackSlider')
-	
+
 	if not cmds.timeControl(aPlayBackSlider, query = True, rangeVisible = True):
 		return cmds.warning("No range selected")
 
