@@ -1,15 +1,32 @@
 import maya.cmds as cmds
 import bakery.timeline as timeline
 class Baker():
+	index = 0
+
+	ARRANJAR UMA MANEIRA MELHOR DE SELECIONAR OS SETS
+	SEM DEPENDER DE NOMES OU MEMORIA 
+
 	def __init__(self):
-		self._selection
-		getSelection() 
+		self._selection = None
+		self._locators = []
+		self._set = None
+		
+	def createBakerSet(self, name ="BakerSet"):
+		self._set = cmds.sets(self._locators, name = "{name}_{Baker.index}")
 
-	def createBakerNode():
-		pass 
+	def addAttrSet(self):
+		cmds.addAttr(self._set, at = "message", ln = "bakerSet")
 
-	def getBakerNode():
-	def getSelection():
+	def getSet(self):
+		return self._set  
+
+	def getSetChildren():
+		pass
+
+	def connectTransformsToBakerNode():
+		pass
+
+	def getSelection(self):
 		self._selection = cmds.ls(sl = True)
 
 	def createTransforms(self):
@@ -115,6 +132,3 @@ def build(constraint = 'parent', scale_constrain = False):
 	locators = create_locators(selection)
 	constraint_nodes(locators, selection, constraint = constraint, scale_constraint = scale_constrain)
 
-if __name__ == "__main__":
-
-	build()
