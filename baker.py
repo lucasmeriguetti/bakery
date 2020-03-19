@@ -2,35 +2,46 @@ import maya.cmds as cmds
 import bakery.timeline as timeline
 class Baker():
 	index = 0
-
-	ARRANJAR UMA MANEIRA MELHOR DE SELECIONAR OS SETS
-	SEM DEPENDER DE NOMES OU MEMORIA 
-
 	def __init__(self):
 		self._selection = None
 		self._locators = []
 		self._set = None
-		
+		self._locatorName = 'locator'
+		self._locators = []
+	
+	def run(self):
+		self.createBakerSet()
+		self.addAttrBakerSet(self._set)
+		self.createLocators()
+		self.__class__.index += 1
+
 	def createBakerSet(self, name ="BakerSet"):
-		self._set = cmds.sets(self._locators, name = "{name}_{Baker.index}")
+		self._set = cmds.sets(self._locators, name = "{}_{}".format(name, self.__class__.index))
+		
 
-	def addAttrSet(self):
-		cmds.addAttr(self._set, at = "message", ln = "bakerSet")
+	def addAttrBakerSet(self, node):
+		cmds.addAttr(node, at = "message", ln = "bakerSet")
 
-	def getSet(self):
+	def getBakerSet(self):
 		return self._set  
-
-	def getSetChildren():
-		pass
-
-	def connectTransformsToBakerNode():
-		pass
 
 	def getSelection(self):
 		self._selection = cmds.ls(sl = True)
 
-	def createTransforms(self):
-		pass 
+	def createLocators(self):
+		self.getSelection()
+ 		self._locators = []
+		self._constraints = []
+
+ 		for i, t in enumerate(self._selection):
+ 			locator = cmds.spaceLocator(name = '{}_{}_{}'.format(t,self._locatorName, i))[0]
+			parent = cmds.parentConstraint(t, locator)
+			scale =  cmds.scaleConstraint(t, locator)
+			self._constraints.append(parent[0])
+			self._constraints.append(scale[0])
+			self._locators.append(locator)
+			cmds.addAttr(locator, at = "message", ln = "bakerLocator")
+			cmds.sets(self._set, edit = True, include = locator)			
 
 	def bakeTransforms(self):
 		pass 
@@ -49,6 +60,10 @@ class Baker():
 
 	def scaleConstraint(self):
 		pass 
+
+	@classmethod
+	def setIndex(cls, index):
+		cls.index = index
 
 def create_locators(selection):
 	time = timeline.get()

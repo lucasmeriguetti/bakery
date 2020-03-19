@@ -1,4 +1,5 @@
 import bakery.baker as baker
+import unittest
 reload(baker)
 import maya.cmds 
 
@@ -7,20 +8,36 @@ class TestBaker(unittest.TestCase):
 		self.bakerObject = baker.Baker()
 
 	def tearDown(self):
-		cmds.delete(self.bakerObject.getSet())
+		cmds.delete(self.bakerObject.getBakerSet())
+
+		if len(cmds.ls(tr = True, ud = False)) > 0:
+			cmds.delete(cmds.ls(tr = True, ud = False))
+
+		baker.Baker.setIndex(0)
 
 
-	def test_createBakerNode(self):
+	def test_createBakerSet(self):
 		self.bakerObject.createBakerSet()
-		result = cmds.objExists(self.bakerObject.getSet())
+		result = cmds.objExists(self.bakerObject.getBakerSet())
 		self.assertTrue(result)
 
 	def test_addAttrToBakerSet(self):
 		self.bakerObject.createBakerSet()
-		self.bakerObject.addAttrSet()
+		self.bakerObject.addAttrBakerSet(self.bakerObject.getBakerSet())
 		result = cmds.attributeQuery("bakerSet",
-			node = self.bakerObject.getSet(),exists = True)
+			node = self.bakerObject.getBakerSet(),exists = True)
 		self.assertTrue(result)
+
+	def test_getBakerSet(self):
+		self.bakerObject.createBakerSet()
+		result = self.bakerObject.getBakerSet()
+		self.assertEqual(result,"BakerSet_0")
+
+	def test_createLocators(self):
+		cubes = [cmds.polyCube()[0] for i in range(5)]
+		cmds.select(cubes)
+		self.bakerObject.run()
+
 
 
 def runTests():	
