@@ -12,22 +12,22 @@ class TestBaker(unittest.TestCase):
 		baker.Baker.setIndex(0)
 		self.bakerObject = baker.Baker()
 
-	# def test_createBakerSet(self):
-	# 	self.bakerObject.createBakerSet()
-	# 	result = cmds.objExists(self.bakerObject.getBakerSet())
-	# 	self.assertTrue(result)
+	def test_createBakerSet(self):
+		self.bakerObject.createBakerSet()
+		result = cmds.objExists(self.bakerObject.getBakerSet())
+		self.assertTrue(result)
 
-	# def test_addAttrToBakerSet(self):
-	# 	self.bakerObject.createBakerSet()
-	# 	self.bakerObject.addAttrBakerSet(self.bakerObject.getBakerSet())
-	# 	result = cmds.attributeQuery("bakerSet",
-	# 		node = self.bakerObject.getBakerSet(),exists = True)
-	# 	self.assertTrue(result)
+	def test_addAttrToBakerSet(self):
+		self.bakerObject.createBakerSet()
+		self.bakerObject.addAttrBakerSet(self.bakerObject.getBakerSet())
+		result = cmds.attributeQuery("bakerSet",
+			node = self.bakerObject.getBakerSet(),exists = True)
+		self.assertTrue(result)
 
-	# def test_getBakerSet(self):
-	# 	self.bakerObject.createBakerSet()
-	# 	result = self.bakerObject.getBakerSet()
-	# 	self.assertEqual(result,"BakerSet_0")
+	def test_getBakerSet(self):
+		self.bakerObject.createBakerSet()
+		result = self.bakerObject.getBakerSet()
+		self.assertEqual(result,"BakerSet_0")
 
 	def test_createLocators(self):
 		print "CREATE LOCATORS "
