@@ -1,5 +1,7 @@
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
 import bakery.timeline as timeline
+
 class Baker():
 	index = 0
 	def __init__(self):
@@ -10,19 +12,25 @@ class Baker():
 		self._locators = []
 	
 	def run(self):
+		self.createLocators()
 		self.createBakerSet()
 		self.addAttrBakerSet(self._set)
-		self.createLocators()
 		self.__class__.index += 1
 
 	def createBakerSet(self, name ="BakerSet"):
 		self._set = cmds.sets(self._locators, name = "{}_{}".format(name, self.__class__.index))
 		
-
 	def addAttrBakerSet(self, node):
 		cmds.addAttr(node, at = "message", ln = "bakerSet")
 
 	def getBakerSet(self):
+		if not cmds.objExists(self._set):
+			cmds.warning("Set doesn't exist.")
+
+		if not cmds.objectType(self._set) == "objectSet":
+			cmds.warning("self._set is not of type objectSet.")
+			return 
+		
 		return self._set  
 
 	def getSelection(self):
@@ -41,7 +49,7 @@ class Baker():
 			self._constraints.append(scale[0])
 			self._locators.append(locator)
 			cmds.addAttr(locator, at = "message", ln = "bakerLocator")
-			cmds.sets(self._set, edit = True, include = locator)			
+	
 
 	def bakeTransforms(self):
 		pass 
@@ -112,7 +120,6 @@ def check_locked_attributes(selection, translation = True, rotation = True):
 							message = "Some one locked the freaking attributes!!!\nScript won't run!!!")
 
 						raise Exception("Locked Attributes: {}".format(locked_attributes))
-
 
 	return False
 
