@@ -5,12 +5,13 @@ import maya.cmds
 
 class TestBaker(unittest.TestCase):
 	def setUp(self):
+		baker.Baker.setIndex(0)
+		self.bakerObject = baker.Baker()
+
+	def tearDown(self):
 		cmds.delete(cmds.ls(tr = True, 
 	 		sets = True, visible = True, 
 	 		ud = False, undeletable = False))
-
-		baker.Baker.setIndex(0)
-		self.bakerObject = baker.Baker()
 
 	def test_createBakerSet(self):
 		self.bakerObject.createBakerSet()
@@ -30,14 +31,14 @@ class TestBaker(unittest.TestCase):
 		self.assertEqual(result,"BakerSet_0")
 
 	def test_createLocators(self):
-		print "CREATE LOCATORS "
+		FINISH TEST
 		baker.Baker.setIndex(0)
 		cubes = [cmds.polyCube()[0] for i in range(5)]
 		cmds.select(cubes)
 
 		bakerObject = baker.Baker()
 		bakerObject.run()
-		setObject = bakerObject.getBakerSet()
+		
 
 def runTests():	
 	print("\n TEST BAKER")

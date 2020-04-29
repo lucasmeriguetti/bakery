@@ -12,7 +12,7 @@ class Baker():
 		self._locators = []
 	
 	def run(self):
-		self.createLocators()
+		self.createControls()
 		self.createBakerSet()
 		self.addAttrBakerSet(self._set)
 		self.__class__.index += 1
@@ -36,7 +36,7 @@ class Baker():
 	def getSelection(self):
 		self._selection = cmds.ls(sl = True)
 
-	def createLocators(self):
+	def createControls(self):
 		self.getSelection()
  		self._locators = []
 		self._constraints = []
@@ -50,6 +50,14 @@ class Baker():
 			self._locators.append(locator)
 			cmds.addAttr(locator, at = "message", ln = "bakerLocator")
 	
+	def bakeControls(self):
+		cmds.bakeResults(self._locators, time = time)
+		for locator in self._locators:
+			for attr in "rx", "ry", "rz":
+				cmds.filterCurve("{}.{}".format(locator, attr))
+
+		cmds.delete(self._constraints)
+
 
 	def bakeTransforms(self):
 		pass 
@@ -68,6 +76,32 @@ class Baker():
 
 	def scaleConstraint(self):
 		pass 
+
+	def check_locked_attributes(selection, translation = True, rotation = True):
+		translation_attrs = ["translateX", "translateY", "translateZ"]
+		rotation_attrs = ["rotateX", "rotateY", "rotateZ"]
+
+		compare_attrs = []
+
+		if translation:
+			compare_attrs.extend(translation_attrs)
+		
+		if rotation:
+			compare_attrs.extend(rotation_attrs)
+
+		for node in selection:
+			locked_attributes = cmds.listAttr(node, k = True, locked = True)
+
+			if locked_attributes:
+				for locked in locked_attributes:
+					for compare in compare_attrs:
+						if compare == locked:
+							cmds.confirmDialog(title = "Locked Attributes",
+								message = "Some one locked the freaking attributes!!!\nScript won't run!!!")
+
+							raise Exception("Locked Attributes: {}".format(locked_attributes))
+
+		return False
 
 	@classmethod
 	def setIndex(cls, index):
@@ -97,31 +131,7 @@ def create_locators(selection):
 
 	return locators 
 	   
-def check_locked_attributes(selection, translation = True, rotation = True):
-	translation_attrs = ["translateX", "translateY", "translateZ"]
-	rotation_attrs = ["rotateX", "rotateY", "rotateZ"]
 
-	compare_attrs = []
-
-	if translation:
-		compare_attrs.extend(translation_attrs)
-	
-	if rotation:
-		compare_attrs.extend(rotation_attrs)
-
-	for node in selection:
-		locked_attributes = cmds.listAttr(node, k = True, locked = True)
-
-		if locked_attributes:
-			for locked in locked_attributes:
-				for compare in compare_attrs:
-					if compare == locked:
-						cmds.confirmDialog(title = "Locked Attributes",
-							message = "Some one locked the freaking attributes!!!\nScript won't run!!!")
-
-						raise Exception("Locked Attributes: {}".format(locked_attributes))
-
-	return False
 
 def constraint_nodes(locators, selection, constraint = 'parent', scale_constraint = False):
 	for node, locator in zip(selection, locators):
