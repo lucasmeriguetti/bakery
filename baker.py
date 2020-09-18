@@ -1,12 +1,38 @@
 import maya.cmds as cmds
 import bakery.timeline as timeline
-def create_locators(selection):
+class Baker(object):
+	def __init__(self, name = None, selection = None):
+		self.sets_attr = "bakingSet"
+		
+		self.selection = selection
+		if not self.selection:
+			self.selection = cmds.ls(sl = True)
+
+	def create_set(self):
+		bset = cmds.sets(self.selection)
+		cmds.addAttr(bset, at = "message", 
+			longName = self.sets_attr,
+			niceName= "Baking Set")
+
+	def get_sets(self):
+		sets = cmds.ls(sets = True)
+		for i in sets:
+			attrs = cmds.listAttr(st = self.sets_attr)
+			if self.sets_attr in attrs:
+				yield i
+
+	def bake_from_set(self, setname):
+		pass
+
+
+def create_locators(selection, suffix = 'ctrl'):
+	euler_filter_attrs = "rx", "ry", "rz"
 	time = timeline.get()
 	locators = []
 	constraints = []
 
-	for node in selection:
-		locator = cmds.spaceLocator(name = node + '_locator_ctrl_0')[0]
+	for index, node in enumerate(selection):
+		locator = cmds.spaceLocator(name = "{}_{}_{}".format(node,suffix,index))[0]
 		
 		parent = cmds.parentConstraint(node, locator)
 		scale =  cmds.scaleConstraint(node, locator)
@@ -17,7 +43,7 @@ def create_locators(selection):
 	cmds.bakeResults(locators, time = time)
 
 	for locator in locators:
-		for attr in "rx", "ry", "rz":
+		for attr in euler_filter_attrs:
 			cmds.filterCurve("{}.{}".format(locator, attr))
 
 	cmds.delete(constraints)
