@@ -44,7 +44,7 @@ def check_locked_attributes(selection, translation = True, rotation = True):
 				for compare in compare_attrs:
 					if compare == locked:
 						cmds.confirmDialog(title = "Locked Attributes",
-							message = "Some one locked the freaking attributes!!!\nScript won't run!!!")
+							message = "Someone locked the freaking attributes!!!\nScript won't run!!!")
 
 						raise Exception("Locked Attributes: {}".format(locked_attributes))
 
@@ -81,6 +81,8 @@ def build(constraint = 'parent', scale_constrain = False):
 
 	locators = create_locators(selection)
 	constraint_nodes(locators, selection, constraint = constraint, scale_constraint = scale_constrain)
+
+	return locators 
 
 if __name__ == "__main__":
 
