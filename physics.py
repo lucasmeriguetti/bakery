@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import bakery.timeline as timeline
 import bakery.baker as baker
 
+
 def nparticle_locators(selection):
 
 	n_locator_offsets = []

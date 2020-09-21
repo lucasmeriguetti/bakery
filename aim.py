@@ -1,4 +1,5 @@
 from maya import cmds
+
 import bakery.vector as vector
 reload(vector)
 
@@ -11,6 +12,11 @@ reload(timeline)
 import bakery.baker as baker
 reload(baker)
 
+import bakery.mutil as mutil
+reload(mutil)
+
+class AimRig(object):
+	pass
 
 def create_locators(selection, suffix = "_"):
 
@@ -158,10 +164,10 @@ def build(constraint = "parent"):
 	selection =  cmds.ls(sl = True)
 
 	if constraint == "parent":
-		baker.check_locked_attributes(selection, translation = True, rotation = True)
+		mutil.check_locked_attributes(selection, translation = True, rotation = True)
 
 	if constraint == "orient":
-		baker.check_locked_attributes(selection, translation = False, rotation = True)
+		mutil.check_locked_attributes(selection, translation = False, rotation = True)
 
 	cmds.currentTime(timeline.get()[0])
 

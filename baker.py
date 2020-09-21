@@ -1,29 +1,118 @@
 import maya.cmds as cmds
 import bakery.timeline as timeline
-class Baker(object):
-	def __init__(self, name = None, selection = None):
-		self.sets_attr = "bakingSet"
-		
-		self.selection = selection
-		if not self.selection:
-			self.selection = cmds.ls(sl = True)
 
-	def create_set(self):
-		bset = cmds.sets(self.selection)
+import bakery.mutil as mutil
+reload(mutil)
+
+class Baker(object):
+	def __init__(self, constraint = 'parent', scale_constraint = False):
+		self.selection_set_attr = "bakerSelectionSet"  
+		self.locator_set_attr = "bakerLocatorSet" 
+		self.locators_set = None
+		self.selection = cmds.ls(sl = True)
+		self.locators = []
+		self.index = len([i for i in self.get_sets()])
+		
+		self.create_selection_set()
+		self.create_locators_set()
+		self.build(constraint, scale_constraint)
+
+
+	def create_locators_set(self):
+		bset = self.locators_set = cmds.sets(name = "Baker_Locators_Set_{}".format(self.index), em = True)
 		cmds.addAttr(bset, at = "message", 
-			longName = self.sets_attr,
+			longName = self.locator_set_attr,
+			niceName= "Locator Set")
+
+	def create_selection_set(self):
+		bset = cmds.sets(self.selection, name = "Baker_Seletion_Set_{}".format(self.index))
+		cmds.addAttr(bset, at = "message", 
+			longName = self.selection_set_attr,
 			niceName= "Baking Set")
 
-	def get_sets(self):
+		return bset
+
+	def get_sets(self, attribute_filter = None):
 		sets = cmds.ls(sets = True)
 		for i in sets:
-			attrs = cmds.listAttr(st = self.sets_attr)
-			if self.sets_attr in attrs:
+			attrs = cmds.listAttr(i, st = attribute_filter)
+			if attrs:
 				yield i
 
-	def bake_from_set(self, setname):
-		pass
+	def bake(self):
+		self.bake_elements()
+		self.remove_baker_elements()
 
+	def bake_elements(self):
+		bake_elements = []
+		time = timeline.get()
+
+		for s in self.get_sets(self.selection_set_attr):
+			bake_elements.extend(cmds.sets(s, q = True))
+		
+		bake_elements = list(set(bake_elements))
+		cmds.bakeResults(bake_elements, time = time)
+		
+	def remove_baker_elements(self):
+		cmds.delete([i for i in self.get_sets(self.selection_set_attr)])
+
+		for i in  self.get_sets(self.locator_set_attr):
+			cmds.delete(cmds.sets(i, q = True))
+
+	def create_locators(self, suffix = 'ctrl'):
+		euler_filter_attrs = "rx", "ry", "rz"
+		time = timeline.get()
+		self.locators = []
+		constraints = []
+
+		for index, node in enumerate(self.selection):
+			locator = cmds.spaceLocator(name = "{}_{}_{}".format(node,suffix,index))[0]
+			
+			parent = cmds.parentConstraint(node, locator)
+			scale =  cmds.scaleConstraint(node, locator)
+			constraints.append(parent[0])
+			constraints.append(scale[0])
+			self.locators.append(locator)
+
+		cmds.bakeResults(self.locators, time = time)
+
+		for locator in self.locators:
+			for attr in euler_filter_attrs:
+				cmds.filterCurve("{}.{}".format(locator, attr))
+
+		cmds.delete(constraints)
+
+		cmds.sets(self.locators, edit = True, fe = self.locators_set)
+
+	def constraint_nodes(self, constraint = 'parent', scale_constraint = False):
+		for node, locator in zip(self.selection, self.locators):
+			try:
+				if constraint == 'parent':
+					cmds.parentConstraint(locator, node, mo = True)
+
+				elif constraint == 'point': 
+					cmds.pointConstraint(locator, node, mo = True)
+
+				elif constraint == 'orient': 
+					cmds.orientConstraint(locator, node, mo = True)
+				
+				
+				if scale_constraint:
+						cmds.cutKey(node, cl = True, at = ("sx","sy","sz"))
+						cmds.scaleConstraint(locator, node, mo = True)
+			
+			except Exception as e:
+				Warning(e)
+
+	def build(self, constraint = 'parent', scale_constraint = False):
+		if constraint == "parent":
+			mutil.check_locked_attributes(self.selection, translation  =True, rotation = True)
+		
+		if constraint == "orient":
+			mutil.check_locked_attributes(self.selection, translation = False, rotation = True)
+
+		self.create_locators()
+		self.constraint_nodes(constraint = constraint, scale_constraint = scale_constraint)
 
 def create_locators(selection, suffix = 'ctrl'):
 	euler_filter_attrs = "rx", "ry", "rz"
@@ -50,44 +139,18 @@ def create_locators(selection, suffix = 'ctrl'):
 
 	return locators 
 	   
-def check_locked_attributes(selection, translation = True, rotation = True):
-	translation_attrs = ["translateX", "translateY", "translateZ"]
-	rotation_attrs = ["rotateX", "rotateY", "rotateZ"]
-
-	compare_attrs = []
-
-	if translation:
-		compare_attrs.extend(translation_attrs)
-	
-	if rotation:
-		compare_attrs.extend(rotation_attrs)
-
-	for node in selection:
-		locked_attributes = cmds.listAttr(node, k = True, locked = True)
-
-		if locked_attributes:
-			for locked in locked_attributes:
-				for compare in compare_attrs:
-					if compare == locked:
-						cmds.confirmDialog(title = "Locked Attributes",
-							message = "Someone locked the freaking attributes!!!\nScript won't run!!!")
-
-						raise Exception("Locked Attributes: {}".format(locked_attributes))
-
-
-	return False
-
 def constraint_nodes(locators, selection, constraint = 'parent', scale_constraint = False):
 	for node, locator in zip(selection, locators):
 		try:
 			if constraint == 'parent':
 				cmds.parentConstraint(locator, node, mo = True)
 
-			if constraint == 'point': 
+			elif constraint == 'point': 
 				cmds.pointConstraint(locator, node, mo = True)
 
-			if constraint == 'orient': 
+			elif constraint == 'orient': 
 				cmds.orientConstraint(locator, node, mo = True)
+			
 			
 			if scale_constraint:
 					cmds.cutKey(node, cl = True, at = ("sx","sy","sz"))
@@ -96,20 +159,19 @@ def constraint_nodes(locators, selection, constraint = 'parent', scale_constrain
 		except Exception as e:
 			Warning(e)
 
-def build(constraint = 'parent', scale_constrain = False):
+def build(constraint = 'parent', scale_constraint = False):
 	selection = cmds.ls(sl = True)
 
 	if constraint == "parent":
-		check_locked_attributes(selection, translation  =True, rotation = True)
+		mutil.check_locked_attributes(selection, translation  =True, rotation = True)
 	
 	if constraint == "orient":
-		check_locked_attributes(selection, translation = False, rotation = True)
+		mutil.check_locked_attributes(selection, translation = False, rotation = True)
 
 	locators = create_locators(selection)
-	constraint_nodes(locators, selection, constraint = constraint, scale_constraint = scale_constrain)
+	constraint_nodes(locators, selection, constraint = constraint, scale_constraint = scale_constraint)
 
 	return locators 
 
 if __name__ == "__main__":
-
 	build()
