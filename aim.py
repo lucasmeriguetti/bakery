@@ -24,6 +24,20 @@ class AimRig(baker.BaseSets):
 		self.create_bakery_elements_set()
 
 		self.build(constraint)
+	def add_end_element_selection(self):
+		start_vector = vector.Vector3().from_transform_translation(self.selection[-2])
+		end_vector = vector.Vector3().from_transform_translation(self.selection[-1])
+		distance_vector = end_vector - start_vector
+
+		result = end_vector + distance_vector
+
+		locator = cmds.spaceLocator(name = ("end_locator_0"))
+		cmds.xform(locator[0], translation = (result.axes()))
+		cmds.parent(locator[0], self.selection[-1])
+		self.add_to_set([locator[0]], self.bakery_elements_set)
+		self.selection.append(locator[0])
+		cmds.setAttr(locator[0] +".visibility", 0)
+
 
 	def create_locators(self,suffix = "_"):
 		locators = []
@@ -157,6 +171,7 @@ class AimRig(baker.BaseSets):
 		self.add_to_set(ctrls, self.bakery_elements_set)
 
 	def build(self, constraint = "parent"):
+		self.add_end_element_selection()
 		self.aim_locators = self.create_locators("aim")
 		self.spin_locators = self.create_locators("spin")
 		self.align_locators()
