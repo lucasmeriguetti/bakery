@@ -4,33 +4,40 @@ import bakery.timeline as timeline
 import bakery.mutil as mutil
 reload(mutil)
 
-class Baker(object):
-	def __init__(self, constraint = 'parent', scale_constraint = False):
-		self.selection_set_attr = "bakerSelectionSet"  
-		self.locator_set_attr = "bakerLocatorSet" 
-		self.locators_set = None
-		self.selection = cmds.ls(sl = True)
+class BaseSets(object):
+	def __init__(self):
+		self.selection_set_attr = "bakerySelectionSet"  
+		self.bakery_elements_set_attr = "bakeryElementsSet" 
+		self.bakery_elements_set = None
+		self.selection_set = None
 		self.locators = []
 		self.index = len([i for i in self.get_sets()])
+
+		self.selection = cmds.ls(sl = True)
+		if len(self.selection) == 0:
+			cmds.warning("Nothing selected. Select at least 1 object.")
+			return
+			 
+	def check_attributes(self, constraint):
+		if constraint == "parent":
+			mutil.check_locked_attributes(self.selection, 
+				translation  =True, rotation = True)
 		
-		self.create_selection_set()
-		self.create_locators_set()
-		self.build(constraint, scale_constraint)
+		if constraint == "orient":
+			mutil.check_locked_attributes(self.selection, 
+				translation = False, rotation = True)
 
-
-	def create_locators_set(self):
-		bset = self.locators_set = cmds.sets(name = "Baker_Locators_Set_{}".format(self.index), em = True)
-		cmds.addAttr(bset, at = "message", 
-			longName = self.locator_set_attr,
-			niceName= "Locator Set")
+	def create_bakery_elements_set(self):
+		self.bakery_elements_set = cmds.sets(name = "Bakery_Elements_Set_{}".format(self.index), em = True)
+		cmds.addAttr(self.bakery_elements_set, at = "message", 
+			longName = self.bakery_elements_set_attr,
+			niceName= "Bakery Elements Set")
 
 	def create_selection_set(self):
-		bset = cmds.sets(self.selection, name = "Baker_Seletion_Set_{}".format(self.index))
-		cmds.addAttr(bset, at = "message", 
+		self.selection_set = cmds.sets(self.selection, name = "Bakery_Seletion_Set_{}".format(self.index))
+		cmds.addAttr(self.selection_set, at = "message", 
 			longName = self.selection_set_attr,
-			niceName= "Baking Set")
-
-		return bset
+			niceName= "Bakery Seletion Set")
 
 	def get_sets(self, attribute_filter = None):
 		sets = cmds.ls(sets = True)
@@ -41,7 +48,7 @@ class Baker(object):
 
 	def bake(self):
 		self.bake_elements()
-		self.remove_baker_elements()
+		self.remove_bakery_elements()
 
 	def bake_elements(self):
 		bake_elements = []
@@ -53,11 +60,26 @@ class Baker(object):
 		bake_elements = list(set(bake_elements))
 		cmds.bakeResults(bake_elements, time = time)
 		
-	def remove_baker_elements(self):
+	def remove_bakery_elements(self):
 		cmds.delete([i for i in self.get_sets(self.selection_set_attr)])
 
-		for i in  self.get_sets(self.locator_set_attr):
+		for i in  self.get_sets(self.bakery_elements_set_attr):
 			cmds.delete(cmds.sets(i, q = True))
+
+	def add_to_set(self, transforms, set):
+		cmds.sets(transforms, edit = True, fe = set)
+
+
+class Baker(BaseSets):
+	def __init__(self, constraint = 'parent', scale_constraint = False):
+		super(Baker, self).__init__()
+
+		self.check_attributes(constraint)
+		self.create_selection_set()
+		self.create_bakery_elements_set()
+		self.build(constraint, scale_constraint)
+
+
 
 	def create_locators(self, suffix = 'ctrl'):
 		euler_filter_attrs = "rx", "ry", "rz"
@@ -82,7 +104,7 @@ class Baker(object):
 
 		cmds.delete(constraints)
 
-		cmds.sets(self.locators, edit = True, fe = self.locators_set)
+		self.add_to_set(self.locators, self.bakery_elements_set)
 
 	def constraint_nodes(self, constraint = 'parent', scale_constraint = False):
 		for node, locator in zip(self.selection, self.locators):
@@ -105,14 +127,12 @@ class Baker(object):
 				Warning(e)
 
 	def build(self, constraint = 'parent', scale_constraint = False):
-		if constraint == "parent":
-			mutil.check_locked_attributes(self.selection, translation  =True, rotation = True)
-		
-		if constraint == "orient":
-			mutil.check_locked_attributes(self.selection, translation = False, rotation = True)
-
 		self.create_locators()
 		self.constraint_nodes(constraint = constraint, scale_constraint = scale_constraint)
+
+
+class Layer():
+	pass
 
 def create_locators(selection, suffix = 'ctrl'):
 	euler_filter_attrs = "rx", "ry", "rz"
