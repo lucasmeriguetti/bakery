@@ -2,7 +2,6 @@ import maya.cmds as cmds
 import bakery.timeline as timeline
 
 import bakery.mutil as mutil
-reload(mutil)
 
 class BaseSets(object):
 	def __init__(self):
